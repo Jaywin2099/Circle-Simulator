@@ -70,8 +70,8 @@
                 <label for='max'>Max-Radius:</label>
                 <input id='dataMaxRad' name='max' type='number' value='100'>
 
-                <label for='interval'>Phase Interval:</label>
-                <input id='phaseInterval' name='interval' type='number' value='1' min='1'>
+                <label for='tickTime'>Tick (ms):</label>
+                <input id='tickTime' name='tickTime' type='number' value='1' min='1'>
 
                 <button type='submit' id='dataSubmit' class='center'>Load</submit>
             </form>
@@ -88,7 +88,7 @@ var dataForm = document.getElementById('dataForm');
 var type = document.getElementById('type');
 var dataMinRad = document.getElementById('dataMinRad');
 var dataMaxRad = document.getElementById('dataMaxRad');
-var phaseInterval = document.getElementById('phaseInterval');
+var tickTime = document.getElementById('tickTime');
 
 //form on submit
 const onDataSubmit = (e) => {
@@ -119,7 +119,7 @@ const onDataSubmit = (e) => {
             circles.push(new Circle(data.x, data.y, data.rad));
             circles[circles.length - 1].draw();
         }
-    }, parseInt(phaseInterval.value));
+    }, parseInt(tickTime.value));
 }
 
 dataForm.addEventListener('submit', onDataSubmit);
@@ -196,54 +196,6 @@ const order = () => {
     if (rad >= minRadius) return { x: x, y: y, rad: rad};
 }
 
-
-//old agar
-/*
-const agar = () => {
-    //generates a random x and y coord and a random sized radius
-    let [x, y, rad] = [Math.round(Math.random() * canvas.width), Math.round(Math.random() * canvas.height), Math.ceil(Math.random() * (maxRadius - minRadius)) + minRadius];
-
-    // this doesnt work...
-    let noChange = true;
-    for (let i = 0; i < circles.length; i++) {
-        for (let j = 0; j < circles.length; j++) {
-            if (i !== j && Math.sqrt(Math.pow(circles[i].x - circles[j].x, 2) + Math.pow(circles[i].y - circles[j].y, 2)) < circles[i].rad + circles[j].rad) {
-                //make the circles that is the combination of both other's position and surface area
-                circles.push(new Circle((circles[i].x + circles[j].x) / 2, (circles[i].y + circles[j].y) / 2, Math.sqrt(circles[i].rad * circles[i].rad + circles[j].rad * circles[j].rad)));
-
-                //splices the item closest to the end of the array first
-                if (i > j) {
-                    //gets rid of the old circles
-                    circles.splice(i, 1);
-                    circles.splice(j, 1);
-                } else {
-                    circles.splice(i, 1);
-                    circles.splice(j, 1);
-                }
-
-                noChange = false;
-                break;
-            }
-
-            //exits nested loop
-            if (!noChange) break;
-        }
-        
-        if (!noChange) break;
-    }
-    
-    //clears canvas
-    c.clearRect(0, 0, canvas.width, canvas.height);
-
-    //adds the circle
-    circles.push(new Circle(x, y, rad));
-
-    //redraws circles
-    for (let i in circles) {
-        circles[i].draw();
-    }
-}*/
-
 //the position changes must be weighted somehow
 const agar = () => {
     //some looping control variables
@@ -277,7 +229,7 @@ const agar = () => {
                 let y = (tempCircles[0].y + tempCircles[1].y) / 2;
 
                 */
-
+                /*
                 // method 2: the radius ratio weighted //
 
                 let bigCircle, smallCircle;
@@ -306,6 +258,18 @@ const agar = () => {
                 let x = bigCircle.x + dist * Math.cos(theta);
                 let y = bigCircle.y + dist * Math.sin(theta);
 
+                */
+
+                // Method 3: Center of Mass //
+
+                let x, y;
+
+                //finds the center of the x dimension system with radius as mass
+                x = ((tempCircles[0].rad * tempCircles[0].x) + (tempCircles[1].rad * tempCircles[1].x)) / (tempCircles[0].rad + tempCircles[1].rad);
+
+                //finds the center of the y dimension system with radius as mass
+                y = ((tempCircles[0].rad * tempCircles[0].y) + (tempCircles[1].rad * tempCircles[1].y)) / (tempCircles[0].rad + tempCircles[1].rad);
+
                 circles.push(new Circle(x, y, rad));
 
                 //change happened so the variable should be false
@@ -333,19 +297,11 @@ const agar = () => {
                 */
 
                 /*
-                try this:
-
                 -get the distance between the centers.
                 -multiply that by the ratio
                 -get the angle
                 -use that angle and that hypot to find the x and y
-                -add the x and y to the bigger circles centerr
-
-                
-
-
-                
-
+                -add the x and y to the bigger circles center
                 */
             }
             j++;

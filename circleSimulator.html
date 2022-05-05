@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+    <meta charset='utf-8'>
+    <title>circles!</title>
+    <meta name='viewport' content='width=device-width, initial-scale=1'>
+    <style>
+        * {
+            margin: 0;
+            box-sizing: border-box;
+        }
+        
+        #wrapper {
+            width: 100%;
+            max-width: 1280px;
+            margin: auto;
+            margin-right: 0;
+            display: flex;
+            flex-flow: row nowrap;
+        }
+
+        #dataContainer {
+            height: 100%;
+            width: 20%;
+            padding: 5px;
+        }
+
+        #dataContainer > * {
+            padding: 15px;
+        }
+
+        #dataForm {
+            max-width: 200px;
+            display: grid;
+        }
+
+        #dataForm > * {
+            margin-top: 5px;
+            width: 100%;
+        }
+
+        .center {
+            margin: auto;
+        }
+
+        #stage {
+            margin: 5px;
+            width: 80%;
+            height: 97vh;
+        }
+    </style>
+</head>
+<body>
+    <div id='wrapper'>
+        <!-- form containter -->
+        <div id='dataContainer'>
+            <h3>Data</h3>
+
+            <form id='dataForm' method='post'>
+                <label for='type'>Type:</label>
+                <select id='type' name='type'>
+                    <option value='random' selected>Random</option>
+                    <option value='order'>Order</option>
+                    <option value='agar'>Agario</option>
+                </select>
+
+                <label for='min'>Min-Radius:</label>
+                <input id='dataMinRad' name='min' type='number' value='1' min='0'>
+
+                <label for='max'>Max-Radius:</label>
+                <input id='dataMaxRad' name='max' type='number' value='100'>
+
+                <label for='interval'>Phase Interval:</label>
+                <input id='phaseInterval' name='interval' type='number' value='1' min='1'>
+
+                <button type='submit' id='dataSubmit' class='center'>Load</submit>
+            </form>
+        </div>
+
+        <!-- canvas container-->
+        <div id='stage'>
+            <canvas id='myCanvas'></canvas>
+        </div>
+    </div>
+    <script>
+
+var dataForm = document.getElementById('dataForm');
+var type = document.getElementById('type');
+var dataMinRad = document.getElementById('dataMinRad');
+var dataMaxRad = document.getElementById('dataMaxRad');
+var phaseInterval = document.getElementById('phaseInterval');
+
+//form on submit
+const onDataSubmit = (e) => {
+    if (e) e.preventDefault();
+    
+    //updates min and max radius
+    minRadius = parseInt(dataMinRad.value);
+    maxRadius = parseInt(dataMaxRad.value);
+
+    //clears canvas
+    c.clearRect(0, 0, canvas.width, canvas.height);
+
+    //clears circles
+    circles = [];
+
+    //clears any previous interval
+    clearInterval(phase);
+    
+    let generator = eval(type.value), data;
+
+    //every one second this code is repeated
+    phase = setInterval(() => {
+        //gets the circle data from whatever generator is selected
+        data = generator();
+
+        //adds the new circle and draws it on the canvas if the data is good
+        if (data) {
+            circles.push(new Circle(data.x, data.y, data.rad));
+            circles[circles.length - 1].draw();
+        }
+    }, parseInt(phaseInterval.value));
+}
+
+dataForm.addEventListener('submit', onDataSubmit);
+
+    </script>
+    <script>
+
+//initializes global elements
+var stage = document.getElementById('stage');
+var canvas = document.getElementById('myCanvas');
+var c = canvas.getContext('2d');
+
+//sets width and height of canvas to that of the stage
+canvas.setAttribute('width', stage.clientWidth);
+canvas.setAttribute('height', stage.clientHeight);
+
+class Circle {
+    constructor (x, y, rad) {
+        this.x = x;
+        this.y = y;
+        this.rad = rad;
+    }
+    draw() {
+        c.fillStyle = 'black';
+        c.beginPath();
+        c.arc(this.x, this.y, this.rad, 0, 2 * Math.PI, true);
+        c.stroke();
+    }
+}
+
+//variables
+var circles = [];
+var maxRadius = 100;
+var minRadius = 1;
+var phase;
+
+const random = () => {
+    //random coords and radius
+    let x, y, rad;
+
+    do {
+        [x, y, rad] = [Math.round(Math.random() * canvas.width), Math.round(Math.random() * canvas.height), Math.ceil(Math.random() * (maxRadius - minRadius)) + minRadius];
+    } while ((() => {
+        for (let i in circles) {
+            if (Math.sqrt(Math.pow(x - circles[i].x, 2) + Math.pow(y - circles[i].y, 2)) < rad + circles[i].rad) {
+                return true;
+            }
+        }
+
+        return false;
+    })()) //end while
+
+    return { x: x, y: y, rad: rad};
+}
+
+const order = () => {
+    //gets some random coords and sets the radius to max
+    let [x, y, rad] = [Math.round(Math.random() * canvas.width), Math.round(Math.random() * canvas.height), maxRadius];
+
+    //decreases the radius while the resulting circle still intercects any other circle
+    while (rad >= minRadius && (() => {
+        for (let i in circles) {
+            if (Math.sqrt(Math.pow(x - circles[i].x, 2) + Math.pow(y - circles[i].y, 2)) < rad + circles[i].rad) {
+                return true;
+            }
+        }
+
+        return false;
+    })()) {
+        rad--;
+    }
+
+    //only sends the radii that are greater than the minimum radius
+    if (rad >= minRadius) return { x: x, y: y, rad: rad};
+}
+
+
+//old agar
+/*
+const agar = () => {
+    //generates a random x and y coord and a random sized radius
+    let [x, y, rad] = [Math.round(Math.random() * canvas.width), Math.round(Math.random() * canvas.height), Math.ceil(Math.random() * (maxRadius - minRadius)) + minRadius];
+
+    // this doesnt work...
+    let noChange = true;
+    for (let i = 0; i < circles.length; i++) {
+        for (let j = 0; j < circles.length; j++) {
+            if (i !== j && Math.sqrt(Math.pow(circles[i].x - circles[j].x, 2) + Math.pow(circles[i].y - circles[j].y, 2)) < circles[i].rad + circles[j].rad) {
+                //make the circles that is the combination of both other's position and surface area
+                circles.push(new Circle((circles[i].x + circles[j].x) / 2, (circles[i].y + circles[j].y) / 2, Math.sqrt(circles[i].rad * circles[i].rad + circles[j].rad * circles[j].rad)));
+
+                //splices the item closest to the end of the array first
+                if (i > j) {
+                    //gets rid of the old circles
+                    circles.splice(i, 1);
+                    circles.splice(j, 1);
+                } else {
+                    circles.splice(i, 1);
+                    circles.splice(j, 1);
+                }
+
+                noChange = false;
+                break;
+            }
+
+            //exits nested loop
+            if (!noChange) break;
+        }
+        
+        if (!noChange) break;
+    }
+    
+    //clears canvas
+    c.clearRect(0, 0, canvas.width, canvas.height);
+
+    //adds the circle
+    circles.push(new Circle(x, y, rad));
+
+    //redraws circles
+    for (let i in circles) {
+        circles[i].draw();
+    }
+}*/
+
+//the position changes must be weighted somehow
+const agar = () => {
+    //some looping control variables
+    let i = 0, j = 1, noChange = true;
+
+    //loops through the circles array in every circle until the noChange variable is false
+    while (i < circles.length && noChange) {
+        while (j < circles.length && noChange) {
+            //checks if each circle is inside each other circle
+            if (Math.sqrt(Math.pow(circles[i].x - circles[j].x, 2) + Math.pow(circles[i].y - circles[j].y, 2)) < circles[i].rad + circles[j].rad) {
+                //copies the two circles
+                let tempCircles = [circles[i], circles[j]];
+
+                //splices the item closest to the end of the array first so that the position of the other doesn't shift after the splice
+                if (i > j) {
+                    circles.splice(i, 1);
+                    circles.splice(j, 1);
+                } else {
+                    circles.splice(j, 1);
+                    circles.splice(i, 1);
+                }
+
+                //radius of the two circles' surface area combined
+                let rad = Math.sqrt(tempCircles[0].rad * tempCircles[0].rad + tempCircles[1].rad * tempCircles[1].rad);
+
+                /*
+                // method 1: the midpoint of the centers //
+
+                let x = (tempCircles[0].x + tempCircles[1].x) / 2;
+                
+                let y = (tempCircles[0].y + tempCircles[1].y) / 2;
+
+                */
+
+                // method 2: the radius ratio weighted //
+
+                let bigCircle, smallCircle;
+
+                if (tempCircles[0].rad > tempCircles[1].rad) {
+                    bigCircle = tempCircles[0];
+                    smallCircle = tempCircles[1];
+                } else {
+                    bigCircle = tempCircles[1];
+                    smallCircle = tempCircles[0];
+                }
+
+                //get the distance between the two circles
+                let dist = Math.sqrt(Math.pow(bigCircle.x - smallCircle.x, 2) + Math.pow(bigCircle.y - smallCircle.y, 2));
+
+                //gets the ratio of the two circles radius size
+                let radRatio = smallCircle.rad / bigCircle.rad;
+
+                //the adjusted hypot for the ratio
+                dist = dist * radRatio;
+                
+                //the angle
+                let theta = Math.atan2(smallCircle.y - bigCircle.y, smallCircle.x - bigCircle.x); // all hail atan2!
+
+                //the new center coords
+                let x = bigCircle.x + dist * Math.cos(theta);
+                let y = bigCircle.y + dist * Math.sin(theta);
+
+                circles.push(new Circle(x, y, rad));
+
+                //change happened so the variable should be false
+                noChange = false;
+
+                /*
+                
+                -find the middle of the point
+                -weigh it in the direction of teh biggest circle
+
+                radius as the magnitude and [angle of the triangle created when the centers are connected] as the direction for both radii.
+
+                find the point on each circle closest to the center of the other circle
+
+                find those two points midpoint
+
+                find the distance from that point to each of the centers
+
+                those two distances are the magnitude of two new vectors with the same angels as before
+
+                add those two vectors
+
+                is there really not a freaking easier way?
+                
+                */
+
+                /*
+                try this:
+
+                -get the distance between the centers.
+                -multiply that by the ratio
+                -get the angle
+                -use that angle and that hypot to find the x and y
+                -add the x and y to the bigger circles centerr
+
+                
+
+
+                
+
+                */
+            }
+            j++;
+        }
+        i++;
+        j = i + 1;
+    }
+    
+    //if there was no change
+    if (noChange) {
+        //random coords and radius size
+        let x = Math.round(Math.random() * canvas.width),
+            y = Math.round(Math.random() * canvas.height),
+            rad = Math.ceil(Math.random() * (maxRadius - minRadius)) + minRadius;
+
+        //adds the random circle to the array
+        circles.push(new Circle(x, y, rad));
+    }
+
+    //clears canvas
+    c.clearRect(0, 0, canvas.width, canvas.height);
+
+    //redraws ALL circles
+    for (let i in circles) {
+        circles[i].draw();
+    }
+}
+
+onDataSubmit();
+    </script>
+</body>
+</html>

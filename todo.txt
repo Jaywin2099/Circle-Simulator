@@ -1,0 +1,4 @@
+just a simple todo list, no stress fam
+
+-speratic updatecompatibility
+-interval updates

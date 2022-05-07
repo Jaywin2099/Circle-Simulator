@@ -23,15 +23,13 @@
             height: 100%;
             width: 20%;
             padding: 5px;
-        }
-
-        #dataContainer > * {
             padding: 15px;
         }
 
         #dataForm {
             max-width: 200px;
             display: grid;
+            margin: 5px;
         }
 
         #dataForm > * {
@@ -39,12 +37,20 @@
             width: 100%;
         }
 
-        .center {
-            margin: auto;
+        #otherDataButtons {
+            width: 100%;
+            display: flex;
+            flex-flow: row wrap;
+            align-items: center;
+            justify-content: space-around;
+            margin-top: -5px;
+        }
+
+        #otherDataButtons > * {
+            margin-top: 5px;
         }
 
         #stage {
-            margin: 5px;
             width: 80%;
             height: 97vh;
         }
@@ -73,8 +79,13 @@
                 <label for='tickTime'>Tick (ms):</label>
                 <input id='tickTime' name='tickTime' type='number' value='1' min='1'>
 
-                <button type='submit' id='dataSubmit' class='center'>Load</submit>
+                <button type='submit' id='dataSubmit'>Load</button>
             </form>
+            <div id='otherDataButtons'>
+                <button id='submissionUpdate'>Update</button>
+                <button id='pause'>Pause</button>
+                <button id='clear'>Clear</button>
+            </div>
         </div>
 
         <!-- canvas container-->
@@ -84,11 +95,20 @@
     </div>
     <script>
 
+//form
 var dataForm = document.getElementById('dataForm');
+
+
+//form data elements
 var type = document.getElementById('type');
 var dataMinRad = document.getElementById('dataMinRad');
 var dataMaxRad = document.getElementById('dataMaxRad');
 var tickTime = document.getElementById('tickTime');
+
+//other buttons
+var updateButton = document.getElementById('submissionUpdate');
+var pauseButton = document.getElementById('pause');
+var clearButton = document.getElementById('clear');
 
 //form on submit
 const onDataSubmit = (e) => {
@@ -98,11 +118,15 @@ const onDataSubmit = (e) => {
     minRadius = parseInt(dataMinRad.value);
     maxRadius = parseInt(dataMaxRad.value);
 
-    //clears canvas
-    c.clearRect(0, 0, canvas.width, canvas.height);
+    //only if the 'event' parameter exists will it refresh the circles and the canvas
+    //basically only if the load button is pressed
+    if (e) {
+        //clears canvas
+        c.clearRect(0, 0, canvas.width, canvas.height);
 
-    //clears circles
-    circles = [];
+        //clears circles
+        circles = [];
+    }
 
     //clears any previous interval
     clearInterval(phase);
@@ -123,6 +147,20 @@ const onDataSubmit = (e) => {
 }
 
 dataForm.addEventListener('submit', onDataSubmit);
+
+updateButton.addEventListener('click', () => {
+    onDataSubmit();
+});
+
+pauseButton.addEventListener('click', () => {
+    clearInterval(phase);
+});
+
+clearButton.addEventListener('click', () => {
+    circles = [];
+
+    c.clearRect(0, 0, canvas.width, canvas.height);
+})
 
     </script>
     <script>

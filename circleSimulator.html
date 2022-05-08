@@ -68,6 +68,7 @@
                     <option value='random' selected>Random</option>
                     <option value='order'>Order</option>
                     <option value='agar'>Agario</option>
+                    <option value='repulsor'>Repulsor</option>
                 </select>
 
                 <label for='min'>Min-Radius:</label>
@@ -97,7 +98,6 @@
 
 //form
 var dataForm = document.getElementById('dataForm');
-
 
 //form data elements
 var type = document.getElementById('type');
@@ -148,19 +148,15 @@ const onDataSubmit = (e) => {
 
 dataForm.addEventListener('submit', onDataSubmit);
 
-updateButton.addEventListener('click', () => {
-    onDataSubmit();
-});
+updateButton.addEventListener('click', () => onDataSubmit());
 
-pauseButton.addEventListener('click', () => {
-    clearInterval(phase);
-});
+pauseButton.addEventListener('click', () => clearInterval(phase)); // ily syntax
 
 clearButton.addEventListener('click', () => {
+    //empties circles and fully clears canvas
     circles = [];
-
     c.clearRect(0, 0, canvas.width, canvas.height);
-})
+});
 
     </script>
     <script>
@@ -234,7 +230,6 @@ const order = () => {
     if (rad >= minRadius) return { x: x, y: y, rad: rad};
 }
 
-//the position changes must be weighted somehow
 const agar = () => {
     //some looping control variables
     let i = 0, j = 1, noChange = true;
@@ -267,6 +262,7 @@ const agar = () => {
                 let y = (tempCircles[0].y + tempCircles[1].y) / 2;
 
                 */
+
                 /*
                 // method 2: the radius ratio weighted //
 
@@ -299,7 +295,6 @@ const agar = () => {
                 */
 
                 // Method 3: Center of Mass //
-
                 let x, y;
 
                 //finds the center of the x dimension system with radius as mass
@@ -312,35 +307,6 @@ const agar = () => {
 
                 //change happened so the variable should be false
                 noChange = false;
-
-                /*
-                
-                -find the middle of the point
-                -weigh it in the direction of teh biggest circle
-
-                radius as the magnitude and [angle of the triangle created when the centers are connected] as the direction for both radii.
-
-                find the point on each circle closest to the center of the other circle
-
-                find those two points midpoint
-
-                find the distance from that point to each of the centers
-
-                those two distances are the magnitude of two new vectors with the same angels as before
-
-                add those two vectors
-
-                is there really not a freaking easier way?
-                
-                */
-
-                /*
-                -get the distance between the centers.
-                -multiply that by the ratio
-                -get the angle
-                -use that angle and that hypot to find the x and y
-                -add the x and y to the bigger circles center
-                */
             }
             j++;
         }
@@ -366,6 +332,87 @@ const agar = () => {
     for (let i in circles) {
         circles[i].draw();
     }
+}
+
+const repulsor = () => {
+    /*
+
+    a simple, no trig repulsor
+
+    */
+    
+    let [x, y, rad] = [Math.round(Math.random() * canvas.width), Math.round(Math.random() * canvas.height), maxRadius];
+    
+    //decreases the radius while the resulting circle still intercects any other circle
+    while (rad >= minRadius && (() => {
+        for (let i in circles) {
+            if (Math.sqrt(Math.pow(x - circles[i].x, 2) + Math.pow(y - circles[i].y, 2)) < rad + circles[i].rad) {
+                //moves the random x coords away from the circle
+                if (x < circles[i].x) x--;
+                else x++;
+
+                //moves the random y coords away from the circle
+                if (y < circles[i].y) y--;
+                else y++;
+
+                return true;
+            }
+        }
+
+        return false;
+    })()) {
+        rad--;
+    }
+    
+    console.log(circles.length)
+
+    //only sends the radii that are greater than the minimum radius
+    if (rad >= minRadius) return { x: x, y: y, rad: rad};
+}
+
+const thePerfectSim = () => {
+    /*
+
+    takes the max radius and slaps circles on the canvas until it can't no more
+    then decrements the radius by one and repeats. its the perfect sim
+
+    but you'd need some sort of centering function
+        basically would need to check where the randomly generated circle is intersecting the other circles, and - like the repulsion of a magnet - move in the other direction(s).
+    
+    Q. but also what would determine when to activate that function?
+    A. but is doesn't need to NOT be active right? i mean think about it: its a fixed radius. if the centering function collides with all four furthest intersection points at once then the circle cant fit there
+
+    but thats it. have the sim randomly generate itself at max radius until the volume of the circles exceeds the minimum volume needed, OR a certian threshhold - maybe like 2 * maxVolumeRequired? then activate the circle repulsive function.
+
+    Q. but jakey, how will you know when to stop running the repulsive function?
+    A. but jerkface, when will you shut the frick up?
+
+    ill stop running the repulsive function when it finds an empty space, or when it runs out of space ?????????????????
+    and when it runs out of space and i know when it runs out of space, ill decrement the radius.
+
+    */
+
+    let rad = maxRadius;
+
+    //generates the random x and y
+    do {
+        //checks if any circles with that radius can fit, and if not, decrements radius
+        if (1) {
+            [x, y] = [Math.round(Math.random() * canvas.width), Math.round(Math.random() * canvas.height)]
+        } else {
+            rad--;
+        }
+    } while ((() => {
+        for (let i in circles) {
+            if (Math.sqrt(Math.pow(x - circles[i].x, 2) + Math.pow(y - circles[i].y, 2)) <circles[i].rad + rad) {
+                return true;
+            }
+        }
+
+        return false;
+    })());
+
+
 }
 
 onDataSubmit();

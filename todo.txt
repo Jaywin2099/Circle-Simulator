@@ -2,3 +2,8 @@ just a simple todo list, no stress fam
 
 -speratic updatecompatibility
 -interval updates
+
+also, there exists a way to find the perfect sim.
+start with a set max size, then generate as many of that size as possible. picture generating a virtual representation of the circle sim: eventually every gap with the posibility of being filled will eventually be filled. find a way for the computer to stop checking those spots, and when there is no more, picture the VERY TICK after entering the infinite loop of finding a new spot - the maximum radius decrements by ONE and repeats until 0. the perfect sim. does it exist?? 
+
+to cheat you could just wait a predetermined ammount of ticks in the loop, like a few million or something, but that's not the perfect sim. thats an imperfect sim.

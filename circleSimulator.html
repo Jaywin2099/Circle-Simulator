@@ -69,6 +69,7 @@
                     <option value='order'>Order</option>
                     <option value='agar'>Agario</option>
                     <option value='repulsor'>Repulsor</option>
+                    <option value='expirimental'>Expirimental</option>
                 </select>
 
                 <label for='min'>Min-Radius:</label>
@@ -363,11 +364,49 @@ const repulsor = () => {
     })()) {
         rad--;
     }
-    
-    console.log(circles.length)
 
     //only sends the radii that are greater than the minimum radius
     if (rad >= minRadius) return { x: x, y: y, rad: rad};
+}
+
+const expirimental = () => {
+    let x, y, rad;
+
+    //generate the x, y repulsed from any circle that it intersects, and do that
+
+    do {
+        //random x, y, and radius
+        [x, y, rad] = [Math.round(Math.random() * canvas.width), Math.round(Math.random() * canvas.height), Math.ceil(Math.random() * (maxRadius - minRadius)) + minRadius];
+
+        for (let i in circles) {
+            if (Math.sqrt(Math.pow(x - circles[i].x, 2) + Math.pow(y - circles[i].y, 2)) < rad + circles[i].rad) {
+                // runs the repulsing //
+
+                //angle with the circle in the circles array as the origin
+                let theta = Math.atan2(y - circles[i].y, x - circles[i].x);
+
+                //the repulsed magnitude from the origin
+                let mag = circles[i].rad + rad;
+                
+                //new x and y from that vector
+                x = Math.cos(theta) * mag;
+                y = Math.sin(theta) * mag;
+            }
+        }
+    } while ((() => {
+        //checks if the repulsed circle intersects with any other circle and repeats the whole thing if it returns true
+        for (let i in circles) {
+            if (Math.sqrt(Math.pow(x - circles[i].x, 2) + Math.pow(y - circles[i].y, 2)) < rad + circles[i].rad) {
+                return true;
+            }
+        }
+
+        return false;
+    })()) //end while
+
+    return { x: x, y: y, rad: rad};
+
+    //what percentage of these circles are random, and what are repulsed though?
 }
 
 const thePerfectSim = () => {
